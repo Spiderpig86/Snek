@@ -9,7 +9,10 @@ var EMPTY = 0, SNAKE = 1, FRUIT = 2;
 var LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3;
 
 // KeyCodes
-var KEY_LEFT = 37, KEY_UP = 38, KEY_RIGHT = 39, KEY_DOWN = 40;
+var KEY_LEFT = 37, KEY_UP = 38, KEY_RIGHT = 39, KEY_DOWN = 40, SPACE = 32;
+
+// Game states
+var PLAYING = 0, PAUSED = 1, DEAD = 2;
 
 // Create the grid and its inner functions
 var grid = {
@@ -94,7 +97,7 @@ var snake = {
 }
 
 // Game objects
-var canvas, ctx, keystate, frames, score; // ctx is context
+var canvas, ctx, keystate, frames, score, state; // ctx is context
 
 function main() {
   canvas = document.createElement("canvas");
@@ -110,12 +113,36 @@ function main() {
 
   // Listen or key events
   document.addEventListener("keydown", function(evt) {
+    if (evt.keyCode === SPACE) {
+      switch (state) {
+        case 0: // If playing, pause the game
+          if (state !== DEAD) {
+            state = PAUSED;
+            drawPaused();
+          }
+          break;
+        case 1: // If paused, resume the game
+          if (state !== DEAD) {
+            state = PLAYING;
+            loop();
+          }
+          break;
+        case 2: // Restart the game if dead
+          state = PLAYING;
+          init();
+          loop();
+          break;
+      }
+    }
     keystate[evt.keyCode] = true; // Sets the array index to true for this key
   });
 
   document.addEventListener("keyup", function(evt) {
     delete keystate[evt.keyCode]; // Removes the key from the index
   });
+
+  // Update game state
+  state = PLAYING;
 
   init();
   loop();
@@ -137,6 +164,14 @@ function init() {
 }
 
 function loop() {
+  // Check if the game is PAUSED. This is placed here to reduce cpu usage on pause
+  if (state === PAUSED)
+    return;
+  else if (state === DEAD) {
+    drawDead();
+    return;
+  }
+
   update();
   draw();
 
@@ -145,13 +180,11 @@ function loop() {
 }
 
 function update() {
+
   frames++;
 
-  // Make the snake respond to key events
-  if (keystate[KEY_LEFT] && snake.direction !== RIGHT) snake.direction = LEFT;
-  if (keystate[KEY_UP] && snake.direction !== DOWN) snake.direction = UP;
-  if (keystate[KEY_RIGHT] && snake.direction !== LEFT) snake.direction = RIGHT;
-  if (keystate[KEY_DOWN] && snake.direction !== UP) snake.direction = DOWN;
+  // Check which directional key is pressed
+  updateDirection();
 
   if (frames % 5 === 0) {
     var nx = snake.last.x;
@@ -173,8 +206,9 @@ function update() {
     }
 
     if (isOutOfBounds(nx, ny)) {
-      init(); // Reset the game
-      return; // Break out of the update loop\
+      //init(); // Reset the game
+      state = DEAD;
+      return; // Break out of the update loop
     }
 
     var tail = checkCollision(nx, ny);
@@ -211,6 +245,14 @@ function checkCollision(nx, ny) {
   return t;
 }
 
+function updateDirection() {
+  // Make the snake respond to key events
+  if (keystate[KEY_LEFT] && snake.direction !== RIGHT) snake.direction = LEFT;
+  if (keystate[KEY_UP] && snake.direction !== DOWN) snake.direction = UP;
+  if (keystate[KEY_RIGHT] && snake.direction !== LEFT) snake.direction = RIGHT;
+  if (keystate[KEY_DOWN] && snake.direction !== UP) snake.direction = DOWN;
+}
+
 function draw() {
   var tw = canvas.width / grid.width; // tile width
   var th = canvas.height / grid.height; // tile height
@@ -236,11 +278,30 @@ function draw() {
   }
 
   // Draw the score
+  drawScore();
+}
+
+function drawScore() {
+  ctx.font = "16px Segoe UI"
   ctx.fillStyle = "#eee";
   ctx.fillText("SCORE: " + score, 10, canvas.height - 10);
 }
 
+function drawPaused() {
+  ctx.font = "30px Segoe UI";
+  ctx.fillStyle = "#eee";
+  ctx.fillText("PAUSED", Math.floor(canvas.width/2 - 45), Math.floor(canvas.height/2));
+}
 
+function drawDead() {
+  ctx.font = "40px Segoe UI";
+  ctx.strokeStyle = "#eee";
+  ctx.strokeText("YOU DIED BUCKO", Math.floor(canvas.width/2 - 145), Math.floor(canvas.height/2));
+
+  ctx.font = "20px Segoe UI";
+  ctx.fillStyle = "#eee";
+  ctx.fillText("Just press space to restart", Math.floor(canvas.width/2 - 105), Math.floor(canvas.height/2 + 50));
+}
 
 // Run the game
 main();
