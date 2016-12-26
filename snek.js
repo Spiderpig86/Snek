@@ -260,12 +260,14 @@ function draw() {
   // Loop through the grid
   for (var x=0; x < grid.width; x++) {
     for (var y=0; y< grid.height; y++) {
-      switch (grid.get(x, y)) {
+      /*switch (grid.get(x, y)) {
         case EMPTY:
           ctx.fillStyle = "#000";
+          ctx.fillRect(x * tw, y * th, tw, th);
           break;
         case SNAKE:
           ctx.fillStyle = "#fff";
+          ctx.fillRect(x * tw, y * th, tw, th);
           break;
         case FRUIT:
           ctx.fillStyle = "#0066FF";
@@ -273,8 +275,26 @@ function draw() {
       }
 
       // Fill the rect with the associated item
-      ctx.fillRect(x * tw, y * th, tw, th);
+      ctx.fillRect(x * tw, y * th, tw, th);*/
+
+      switch (grid.get(x, y)) {
+        case EMPTY:
+          ctx.fillStyle = "#000";
+          ctx.fillRect(x * tw, y * th, tw, th);
+          break;
+        case SNAKE:
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(x * tw, y * th, tw, th);
+          break;
+        case FRUIT:
+          var img = new Image(); /* TODO: Resize image */
+            img.src = "data:image/png;base64,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";
+            ctx.drawImage(img, x * tw, y * th);
+
+          break;
     }
+    }
+
   }
 
   // Draw the score
