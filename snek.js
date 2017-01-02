@@ -180,7 +180,7 @@ function main() {
 
   // Add mousemove and mousedown events to the canvas
   //canvas.addEventListener("mousemove", trackPosition, true);
-  //canvas.addEventListener("mouseup", btnClick, true);
+  canvas.addEventListener("mouseup", btnClick, true);
 
   // Update game state
   state = START;
@@ -202,32 +202,28 @@ function createStartMenu() {
   startBtn.init(centerX, centerY);
   startBtn.draw();
 
-  canvas.addEventListener("mouseup", function(e) {
-    // Mouse positions
-    var mx = e.pageX;
-    var my = e.pageY;
-
-    console.log(startBtn.getRectX());
-    console.log(mx + " " + my);
-    // Start button detection
-    if (mx >= startBtn.getRectX() && mx <= startBtn.getRectX() + startBtn.getWidth() && my >= startBtn.getRectY() && my <= startBtn.getRectY() + startBtn.getHeight()) {
-      console.log("yay");
-    }
-  });
 }
 
 // Detect button mouse click
 function btnClick(e) {
-  // Mouse positions
-  var mx = e.pageX;
-  var my = e.pageY;
+  // Get canvas rect
+  var rect = canvas.getBoundingClientRect();
 
-  console.log(startBtn.getRectX());
-  console.log(mx + " " + my);
+  // Mouse positions with offset
+  var mx = e.pageX - rect.left;
+  var my = e.pageY - rect.top;
+
   // Start button detection
-  if (mx >= startBtn.getRectX() && mx <= startBtn.getRectX() + startBtn.getWidth() && my >= startBtn.getRectY() && my <= startBtn.getRectY() + startBtn.getHeight()) {
-    console.log("yay");
+  if (isMouseInBounds(mx, my, startBtn)) {
+    // Start the game
+    state = PLAYING;
+    init();
+    loop();
   }
+}
+
+function isMouseInBounds(mx, my, btn) {
+  return ((mx >= btn.getRectX() && mx <= btn.getRectX() + btn.getWidth() && my >= btn.getRectY() && my <= btn.getRectY() + btn.getHeight()))
 }
 
 function init() {
